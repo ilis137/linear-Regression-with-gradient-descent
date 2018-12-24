@@ -2,7 +2,7 @@ let x_vals = []
 let y_vals = []
 let m, b;
 
-const learningRate = 0.2;
+const learningRate = 0.1;
 const optimizer = tf.train.sgd(learningRate);
 
 function setup() {
@@ -32,13 +32,15 @@ function predict(x) {
 
 
 function draw() {
+    tf.tidy(() => {
+        if (x_vals.length > 0) {
+            const ys = tf.tensor1d(y_vals)
+            optimizer.minimize(function() {
+                return loss(predict(x_vals), ys)
+            })
+        }
 
-    if (x_vals.length > 0) {
-        const ys = tf.tensor1d(y_vals)
-        optimizer.minimize(function() {
-            return loss(predict(x_vals), ys)
-        })
-    }
+    })
 
     background(0)
 
@@ -53,15 +55,19 @@ function draw() {
     }
 
     const xs = [0, 1]
-    const ys = predict(xs)
-
+    const ys = tf.tidy(() => predict(xs))
+    let liney = ys.dataSync()
+    ys.dispose()
     let x1 = map(xs[0], 0, 1, 0, width)
     let x2 = map(xs[1], 0, 1, 0, width)
 
-    let liney = ys.dataSync()
-    console.log(liney)
+
+    //console.log(liney)
     let y1 = map(liney[0], 0, 1, height, 0)
     let y2 = map(liney[1], 0, 1, height, 0)
     strokeWeight(3)
     line(x1, y1, x2, y2)
+
+
+
 }
